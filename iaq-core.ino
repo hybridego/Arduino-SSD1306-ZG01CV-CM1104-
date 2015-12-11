@@ -54,7 +54,6 @@ byte CM1104_co2_data[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
 void loop() 
 {
-        display.clearDisplay();
         //-------------------------------------------
         Wire.requestFrom(VOC_ADDRESS, RECV_DATA_SIZE);
         co2_value = 0;
@@ -78,10 +77,7 @@ void loop()
 
         Serial.print("CO2:");Serial.println(co2_value);
         Serial.print("VOC:");Serial.println(voc_value);
-        display.setCursor(0,0);
-        display.print("iAQ:");
-        display.println(co2_value);
-        display.display();
+
         // resistance = ((buffer[pad+3]& 0x00) | (buffer[pad+4]<<16) | (buffer[pad+5]<<8) | buffer[pad+6]);
         // Serial.print("Resistance: ");Serial.println(resistance);
         checkStatus(buffer[pad+2]);
@@ -105,30 +101,29 @@ void loop()
 
                         Serial.print("ZG01CV_CO2:");
                         Serial.println(hex2int(ZG01CV_co2_data, 4));
-                        display.setCursor(0,25);
-                        display.print("ZG:");
-                        display.println(hex2int(ZG01CV_co2_data, 4));
 
                         //-------------------------------------------
                         Serial2.write(CM1104_command,8);
                         while(!Serial2.available()){}
                         memset(CM1104_co2_data,0x00,4);
-                                for(int ii=0; ii<8; ii++){
-                                        while(!Serial2.available()){}
-                                        CM1104_co2_data[ii] = Serial2.read();
-                                }
-                                Serial.print("CM1104_CO2:");
-                                Serial.println(CM1104_co2_data[3]<<8 | CM1104_co2_data[4]);
-                                display.setCursor(0,50);
-                                display.print("CM:");
-                                display.println(CM1104_co2_data[3]<<8 | CM1104_co2_data[4]);
-                                display.display();
-                                break;
-                       //-------------------------------------------
+                        for(int ii=0; ii<8; ii++){
+                                while(!Serial2.available()){}
+                                CM1104_co2_data[ii] = Serial2.read();
+                        }
+                        Serial.print("CM1104_CO2:");
+                        Serial.println(CM1104_co2_data[3]<<8 | CM1104_co2_data[4]);
                         break;
+                        //-------------------------------------------
                 }
         }
         Serial.println("");
+        display.clearDisplay();
+        display.setCursor(0,0);
+        display.print("iAQ:");display.println(co2_value);
+        display.setCursor(0,25);
+        display.print("ZG:");display.println(hex2int(ZG01CV_co2_data, 4));
+        display.setCursor(0,50);
+        display.print("CM:");display.println(CM1104_co2_data[3]<<8 | CM1104_co2_data[4]);
         display.display();
         //-------------------------------------------
         delay(5000);
