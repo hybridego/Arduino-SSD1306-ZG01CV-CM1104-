@@ -46,8 +46,8 @@ byte buffer[RECV_DATA_SIZE];
 
 char ZG01CV_pb;
 const byte ZG01CV_command[4]={0x23, 0x31, 0x30, 0x0D};
-char ZG01CV_co2_data[4]={0x00,};
-char ZG01CV_temp_data[4]={0x00,};
+unsigned char ZG01CV_co2_data[4]={0x00,};
+unsigned char ZG01CV_temp_data[4]={0x00,};
 
 const byte CM1104_command[4]={0x11, 0x01, 0x01, 0xED};
 byte CM1104_co2_data[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -88,16 +88,16 @@ void loop()
                 if (ZG01CV_pb == 'P'){
                         memset(ZG01CV_co2_data,0x00,4);
                         while(!Serial3.available()){}
-                        ZG01CV_co2_data[0]  = (char)Serial3.read();
+                        ZG01CV_co2_data[0]  = (unsigned char)Serial3.read();
 
                         while(!Serial3.available()){}
-                        ZG01CV_co2_data[1]  = (char)Serial3.read();
+                        ZG01CV_co2_data[1]  = (unsigned char)Serial3.read();
 
                         while(!Serial3.available()){}
-                        ZG01CV_co2_data[2]  = (char)Serial3.read();
+                        ZG01CV_co2_data[2]  = (unsigned char)Serial3.read();
 
                         while(!Serial3.available()){}
-                        ZG01CV_co2_data[4]  = (char)Serial3.read();
+                        ZG01CV_co2_data[4]  = (unsigned char)Serial3.read();
 
                         Serial.print("ZG01CV_CO2:");
                         Serial.println(hex2int(ZG01CV_co2_data, 4));
@@ -119,7 +119,7 @@ void loop()
         Serial.println("");
         display.clearDisplay();
         display.setCursor(0,0);
-        display.print("iAQ:");display.println(co2_value);
+        display.print("iAQ:");display.print(co2_value);display.print(" ");display.print(checkStatus(buffer[pad+2]));
         display.setCursor(0,25);
         display.print("ZG:");display.println(hex2int(ZG01CV_co2_data, 4));
         display.setCursor(0,50);
@@ -129,32 +129,38 @@ void loop()
         delay(5000);
 }
 
-void checkStatus(byte statu)
+char checkStatus(byte statu)
 {
         if(statu == 0x10)
         {
                 Serial.println("Warming up...");
+                return'W';
         }
         else if(statu == 0x00)
         {
                 Serial.println("Ready");  
+                return 'R';
         }
         else if(statu == 0x01)
         {
-                Serial.println("Busy");  
+                Serial.println("Busy");
+                return 'B';
         }
         else if(statu == 0x80)
         {
-                Serial.println("Error");  
+                Serial.println("Error");
+                return 'E';
         }
-        else
+        else{
                 Serial.println("No Status, check module");
+                return 'N';
+        }
 }
 
-unsigned long hex2int(char *a, unsigned int len)
+unsigned int hex2int(unsigned char *a, unsigned int len)
 {
         int i;
-        unsigned long val = 0;
+        unsigned int val = 0;
 
         for(i=0;i<len;i++)
                 if(a[i] <= 57)
